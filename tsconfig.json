@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "es2022",
+    "module": "ESNext",
     "removeComments": true,
     "declaration": true,
     "outDir": "./dist",
+    "lib": ["ES2023.Array"],
     "preserveConstEnums": true,
     "strict": true,
     "allowSyntheticDefaultImports": true,
