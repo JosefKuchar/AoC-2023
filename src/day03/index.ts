@@ -76,10 +76,7 @@ const part1 = (rawInput: string) => {
 const part2 = (rawInput: string) => {
   const data = solve(rawInput, (val) => val === "*");
   return Object.values(data).reduce(
-    (acc, gear) =>
-      (gear as any).length === 2
-        ? (gear as any)[0] * (gear as any)[1] + (acc as any)
-        : acc,
+    (acc, gear) => (gear.length === 2 ? gear[0] * gear[1] + acc : acc),
     0,
   );
 };
