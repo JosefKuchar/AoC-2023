@@ -1,4 +1,5 @@
 import run from "aocrunner";
+import { Worker } from "worker_threads";
 
 const parseInput = (rawInput: string) => {
   const [rawSeeds, ...rawMaps] = rawInput.trim().split("\n\n");
@@ -31,29 +32,26 @@ const part1 = (rawInput: string) => {
   }, Number.MAX_SAFE_INTEGER);
 };
 
-const part2 = (rawInput: string) => {
+const part2 = async (rawInput: string) => {
   const input = parseInput(rawInput);
-  let min = Number.MAX_SAFE_INTEGER;
+  const workers: Promise<Worker>[] = [];
+  const results: any = [];
   for (let i = 0; i < input.seeds.length; i += 2) {
-    console.log(i, input.seeds[i], input.seeds[i + 1]);
-    for (let j = input.seeds[i]; j < input.seeds[i] + input.seeds[i + 1]; j++) {
-      let currentId = j;
-      input.maps.forEach((map) => {
-        for (const [dest, source, length] of map) {
-          if (currentId >= source && currentId < source + length) {
-            currentId = dest + (currentId - source);
-            break;
-          }
-        }
-      });
-      if (currentId < min) {
-        min = currentId;
-      }
-    }
-    console.log("current min", min);
+    const worker = new Worker("./src/day05/worker.js", {
+      workerData: {
+        start: input.seeds[i],
+        length: input.seeds[i + 1],
+        maps: input.maps,
+        results,
+      },
+    });
+    workers.push(new Promise((res) => worker.once("exit", res)));
   }
+  await Promise.all(workers);
 
-  return min;
+  console.log(results);
+
+  return Math.min(...results);
 };
 
 run({
@@ -140,5 +138,5 @@ humidity-to-location map:
     solution: part2,
   },
   trimTestInputs: true,
-  onlyTests: false,
+  onlyTests: true,
 });
