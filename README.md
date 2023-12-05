@@ -97,9 +97,9 @@ Both parts: 1.871ms
 
 ```
 Day 05
-Time part 1: 0.61ms
+Time part 1: 1.351ms
 Time part 2: -
-Both parts: 0.61ms
+Both parts: 1.351ms
 ```
 
 ```
@@ -244,7 +244,7 @@ Both parts: -
 
 ```
 Total stars: 9/50
-Total time: 43.173ms
+Total time: 43.914ms
 ```
 
 <!--/RESULTS-->

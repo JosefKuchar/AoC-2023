@@ -35,14 +35,12 @@ const part1 = (rawInput: string) => {
 const part2 = async (rawInput: string) => {
   const input = parseInput(rawInput);
   const workers: Promise<number>[] = [];
-  const results: any = [];
   for (let i = 0; i < input.seeds.length; i += 2) {
     const worker = new Worker("./src/day05/worker.js", {
       workerData: {
         start: input.seeds[i],
         length: input.seeds[i + 1],
         maps: input.maps,
-        results,
       },
     });
     workers.push(
