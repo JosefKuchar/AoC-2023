@@ -34,7 +34,7 @@ const part1 = (rawInput: string) => {
 
 const part2 = async (rawInput: string) => {
   const input = parseInput(rawInput);
-  const workers: Promise<Worker>[] = [];
+  const workers: Promise<number>[] = [];
   const results: any = [];
   for (let i = 0; i < input.seeds.length; i += 2) {
     const worker = new Worker("./src/day05/worker.js", {
@@ -45,13 +45,11 @@ const part2 = async (rawInput: string) => {
         results,
       },
     });
-    workers.push(new Promise((res) => worker.once("exit", res)));
+    workers.push(
+      new Promise((res) => worker.once("message", (min) => res(min))),
+    );
   }
-  await Promise.all(workers);
-
-  console.log(results);
-
-  return Math.min(...results);
+  return Math.min(...(await Promise.all(workers)));
 };
 
 run({
@@ -138,5 +136,5 @@ humidity-to-location map:
     solution: part2,
   },
   trimTestInputs: true,
-  onlyTests: true,
+  onlyTests: false,
 });

@@ -1,6 +1,5 @@
-import { workerData } from "worker_threads";
+import { workerData, parentPort } from "worker_threads";
 
-console.log("running", workerData.start, workerData.length);
 let min = Number.MAX_SAFE_INTEGER;
 for (let j = workerData.start; j < workerData.start + workerData.length; j++) {
   let currentId = j;
@@ -16,5 +15,6 @@ for (let j = workerData.start; j < workerData.start + workerData.length; j++) {
     min = currentId;
   }
 }
-workerData.results.push(min);
-console.log("min", min);
+
+// Send result back to parent thread
+parentPort.postMessage(min);
