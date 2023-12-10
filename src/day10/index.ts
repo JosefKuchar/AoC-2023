@@ -16,6 +16,33 @@ const getNext = (
   return null;
 };
 
+const flood = (map: string[][]) => {
+  const queue = [{ x: 0, y: 0 }];
+
+  while (queue.length > 0) {
+    const curr = queue.shift()!;
+    if (
+      curr.x < 0 ||
+      curr.y < 0 ||
+      curr.x >= map[0].length ||
+      curr.y >= map.length
+    ) {
+      continue;
+    }
+
+    if (map[curr.y][curr.x] === ".") {
+      map[curr.y][curr.x] = "#";
+    } else {
+      continue;
+    }
+
+    queue.push({ ...curr, x: curr.x - 1 });
+    queue.push({ ...curr, x: curr.x + 1 });
+    queue.push({ ...curr, y: curr.y - 1 });
+    queue.push({ ...curr, y: curr.y + 1 });
+  }
+};
+
 const propagate = (
   map: string[][],
   distances: number[][],
@@ -25,6 +52,15 @@ const propagate = (
 
   while (queue.length > 0) {
     const curr = queue.shift()!;
+    if (
+      curr.x < 0 ||
+      curr.y < 0 ||
+      curr.x >= map[0].length ||
+      curr.y >= map.length
+    ) {
+      continue;
+    }
+
     const current = map[curr.y][curr.x];
     if (current === ".") {
       continue;
@@ -152,8 +188,98 @@ const part1 = (rawInput: string) => {
 
 const part2 = (rawInput: string) => {
   const input = parseInput(rawInput);
+  const distances = input.map((line) => line.map(() => 0));
+  for (let y = 0; y < input.length; y++) {
+    for (let x = 0; x < input[y].length; x++) {
+      if (input[y][x] === "S") {
+        propagate(input, distances, { x, y });
+      }
+    }
+  }
+  // Clean input
+  for (let y = 0; y < input.length; y++) {
+    for (let x = 0; x < input[y].length; x++) {
+      if (!(input[y][x] === "S" || distances[y][x] !== 0)) {
+        input[y][x] = ".";
+      }
+    }
+  }
+  // Upsample 3x
+  const upsampled = new Array(input.length * 3)
+    .fill(0)
+    .map((x) => new Array(input[0].length * 3).fill("."));
+  for (let y = 0; y < input.length; y++) {
+    for (let x = 0; x < input[y].length; x++) {
+      const ux = 3 * x + 1;
+      const uy = 3 * y + 1;
+      switch (input[y][x]) {
+        case "-":
+          upsampled[uy][ux - 1] = "-";
+          upsampled[uy][ux] = "-";
+          upsampled[uy][ux + 1] = "-";
+          break;
+        case "|":
+          upsampled[uy - 1][ux] = "|";
+          upsampled[uy][ux] = "|";
+          upsampled[uy + 1][ux] = "|";
+          break;
+        case "L":
+          upsampled[uy - 1][ux] = "|";
+          upsampled[uy][ux] = "L";
+          upsampled[uy][ux + 1] = "-";
+          break;
+        case "F":
+          upsampled[uy][ux + 1] = "-";
+          upsampled[uy][ux] = "F";
+          upsampled[uy + 1][ux] = "|";
+          break;
+        case "J":
+          upsampled[uy][ux - 1] = "-";
+          upsampled[uy][ux] = "J";
+          upsampled[uy - 1][ux] = "|";
+          break;
+        case "7":
+          upsampled[uy][ux - 1] = "-";
+          upsampled[uy][ux] = "7";
+          upsampled[uy + 1][ux] = "|";
+          break;
+        case "S":
+          upsampled[uy][ux] = "S";
+          upsampled[uy - 1][ux] = "|";
+          upsampled[uy + 1][ux] = "|";
+          upsampled[uy][ux - 1] = "-";
+          upsampled[uy][ux + 1] = "-";
+          break;
+      }
+    }
+  }
+  // Flood
+  flood(upsampled);
 
-  return;
+  // Downsample 3x
+  for (let y = 0; y < input.length; y++) {
+    for (let x = 0; x < input[y].length; x++) {
+      input[y][x] = upsampled[y * 3 + 1][x * 3 + 1];
+    }
+  }
+
+  for (let y = 0; y < input.length; y++) {
+    let str = "";
+    for (let x = 0; x < input[y].length; x++) {
+      str += input[y][x];
+    }
+    console.log(str);
+  }
+
+  for (let y = 0; y < upsampled.length; y++) {
+    let str = "";
+    for (let x = 0; x < upsampled[y].length; x++) {
+      str += upsampled[y][x];
+    }
+    console.log(str);
+  }
+
+  return input.flat().filter((char) => char === ".").length;
 };
 
 run({
@@ -222,5 +348,5 @@ L7JLJL-JLJLJL--JLJ.L`,
     solution: part2,
   },
   trimTestInputs: true,
-  onlyTests: false,
+  // onlyTests: true,
 });
