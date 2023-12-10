@@ -255,30 +255,12 @@ const part2 = (rawInput: string) => {
   }
   // Flood
   flood(upsampled);
-
   // Downsample 3x
   for (let y = 0; y < input.length; y++) {
     for (let x = 0; x < input[y].length; x++) {
       input[y][x] = upsampled[y * 3 + 1][x * 3 + 1];
     }
   }
-
-  for (let y = 0; y < input.length; y++) {
-    let str = "";
-    for (let x = 0; x < input[y].length; x++) {
-      str += input[y][x];
-    }
-    console.log(str);
-  }
-
-  for (let y = 0; y < upsampled.length; y++) {
-    let str = "";
-    for (let x = 0; x < upsampled[y].length; x++) {
-      str += upsampled[y][x];
-    }
-    console.log(str);
-  }
-
   return input.flat().filter((char) => char === ".").length;
 };
 
