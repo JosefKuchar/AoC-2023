@@ -1,5 +1,4 @@
 import run from "aocrunner";
-import { Worker } from "worker_threads";
 
 const parseInput = (rawInput: string) =>
   rawInput
@@ -22,9 +21,13 @@ const checkRow = (row: string, groups: number[], length: number) => {
     } else {
       if (curr !== 0) {
         if (curr !== groups[groupIndex]) {
-          return false;
+          return null;
         }
         groupIndex++;
+      } else {
+        if (curr > groups[groupIndex]) {
+          return null;
+        }
       }
       curr = 0;
     }
@@ -32,37 +35,58 @@ const checkRow = (row: string, groups: number[], length: number) => {
   if (row.length === length) {
     if (curr !== 0) {
       if (curr !== groups[groupIndex]) {
-        return false;
+        return null;
       }
       groupIndex++;
     }
     if (groupIndex !== groups.length) {
-      return false;
+      return null;
     }
   }
-  return true;
+  return { groupIndex, curr };
 };
 
 const calculateCombinations = (
   current: string,
   original: string,
   groups: number[],
+  cache: Map<string, number> = new Map(),
 ) => {
-  if (!checkRow(current, groups, original.length)) {
+  const rest = original.substring(current.length);
+  const check = checkRow(current, groups, original.length);
+  if (check === null) {
     return 0;
   }
   if (current.length === original.length) {
-    return checkRow(current, groups, original.length) ? 1 : 0;
+    return check !== null ? 1 : 0;
   }
-
+  if (cache.has(`${rest}-${check.groupIndex}-${check.curr}`)) {
+    return cache.get(`${rest}-${check.groupIndex}-${check.curr}`)!;
+  }
   let combinations = 0;
-  const curr = original.charAt(current.length);
-  if (curr === "?") {
-    combinations += calculateCombinations(current + ".", original, groups);
-    combinations += calculateCombinations(current + "#", original, groups);
+  const currChar = original.charAt(current.length);
+  if (currChar === "?") {
+    combinations += calculateCombinations(
+      current + ".",
+      original,
+      groups,
+      cache,
+    );
+    combinations += calculateCombinations(
+      current + "#",
+      original,
+      groups,
+      cache,
+    );
   } else {
-    combinations += calculateCombinations(current + curr, original, groups);
+    combinations += calculateCombinations(
+      current + currChar,
+      original,
+      groups,
+      cache,
+    );
   }
+  cache.set(`${rest}-${check.groupIndex}-${check.curr}`, combinations);
   return combinations;
 };
 
@@ -74,22 +98,17 @@ const part1 = (rawInput: string) => {
   );
 };
 
-const part2 = async (rawInput: string) => {
+const part2 = (rawInput: string) => {
   const input = parseInput(rawInput);
-  const threads = 20;
-  const chunkSize = Math.ceil(input.length / threads);
-  const workers: Promise<number>[] = [];
-  for (let i = 0; i < input.length; i += chunkSize) {
-    const chunk = input.slice(i, i + chunkSize);
-    // console.log(chunk);
-    const worker = new Worker("./src/day12/worker.js", {
-      workerData: {
-        data: chunk,
-      },
-    });
-    workers.push(new Promise((res) => worker.once("message", (x) => res(x))));
-  }
-  return (await Promise.all(workers)).reduce((a, b) => a + b);
+  return input.reduce((acc, row) => {
+    let newState = row.state;
+    let newGroups = row.groups;
+    for (let i = 0; i < 4; i++) {
+      newState += "?" + row.state;
+      newGroups = [...newGroups, ...row.groups];
+    }
+    return calculateCombinations("", newState, newGroups) + acc;
+  }, 0);
 };
 
 run({
